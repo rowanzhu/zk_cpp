@@ -21,6 +21,8 @@ class ZkCpp
         int ProcessRecv();
 
         const char *GetErrorString() const { return m_ErrorString; }
+        static const char *State2String(int p_iState);
+        static const char *Type2String(int p_iType);
     protected:
         /*
          * User-defined behavior by inherit
@@ -33,11 +35,18 @@ class ZkCpp
             ZkCpp *pSelf;
             void *pUserData;
         };
-        static int _DataCompletion(int rc, const char *value, int value_len, 
+        static void _DataCompletionCB(int rc, const char *value, int value_len, 
                 const struct Stat *stat, const void *data);
+
+        static void _GlobalWatcher(zhandle_t *p_pZH, int p_iType, int p_iState,
+                const char *p_szPath, void *p_pWatcherCtx);
     private:
+        enum
+        {
+            ERROR_STRING_LEN = 256
+        };
         zhandle_t *m_ZkHdl;
-        char m_ErrorString[256];
+        char m_ErrorString[ERROR_STRING_LEN];
 };
 
 #endif
