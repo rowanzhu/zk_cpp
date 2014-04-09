@@ -45,6 +45,12 @@ int ZkCpp::SendGetData(const char *p_szPath, void *p_pUserData)
         return -1;
     }
 
+    if(!IsConnectedState())
+    {
+        snprintf(m_ErrorString, ERROR_STRING_LEN, "StateError|%d", zoo_state(m_ZkHdl));
+        return -1;
+    }
+
     ComplexUserData *pCUserData = new ComplexUserData();
     if(NULL == pCUserData)
     {
@@ -169,4 +175,20 @@ const char *ZkCpp::Type2String(int p_iType)
         return "NOTWATCHING_EVENT";
 
     return "UNKNOWN_EVENT_TYPE";
+}
+
+bool ZkCpp::IsConnectedState()
+{
+    if(NULL == m_ZkHdl)
+    {
+        return false;
+    }
+    
+    if(ZOO_CONNECTED_STATE == zoo_state(m_ZkHdl))
+    {
+        return true;
+    }else
+    {
+        return false;
+    }
 }

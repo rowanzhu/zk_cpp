@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <string.h>
+#include <time.h>
 #include "example.h"
 
 void MyZkCpp::_OnDataCompletion(int p_pRet, const char * p_pData, int p_iDataLen, void *p_pUserData)
@@ -36,8 +37,19 @@ int main()
         return 0;
     }
 
+    int iIndex = 0;
     while(true)
     {
+        ++iIndex;
+        printf("index:%d|%u\n", iIndex, (unsigned int)time(NULL));
+        if(0 != zk.SendGetData("/rowan", (void*)iIndex))
+        {
+            printf("SendError|%s\n", zk.GetErrorString());
+        }else
+        {
+            printf("SendSucc|%d\n", iIndex);
+        }
+
         zk.ProcessRecv();
     }
     

@@ -23,6 +23,8 @@ class ZkCpp
         const char *GetErrorString() const { return m_ErrorString; }
         static const char *State2String(int p_iState);
         static const char *Type2String(int p_iType);
+
+        bool IsConnectedState();
     protected:
         /*
          * User-defined behavior by inherit
