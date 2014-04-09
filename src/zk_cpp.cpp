@@ -42,7 +42,7 @@ int ZkCpp::SendGetData(const char *p_szPath, void *p_pUserData)
     if(NULL == p_szPath)
     {
         snprintf(m_ErrorString, ERROR_STRING_LEN, "NULL Path");
-        reurn -1;
+        return -1;
     }
 
     ComplexUserData *pCUserData = new ComplexUserData();
@@ -54,7 +54,7 @@ int ZkCpp::SendGetData(const char *p_szPath, void *p_pUserData)
     pCUserData->pSelf = this;
     pCUserData->pUserData = p_pUserData;
 
-    int iRet = zoo_aget(m_ZkHdl, p_szPath, ZkCpp::_DataCompletionCB, pCUserData);
+    int iRet = zoo_aget(m_ZkHdl, p_szPath, 0, ZkCpp::_DataCompletionCB, pCUserData);
 
     if(0 != iRet)
     {
@@ -77,7 +77,7 @@ int ZkCpp::ProcessRecv()
     int events = 0;
     struct timeval tv;
     int rc = 0;
-    zookeeper_interest(m_ZkHdl, &fd, &interest, &tv);
+    zookeeper_interest(m_ZkHdl, &fd, &interest, &tv); //TODO: confirm no waiting
     if(fd != -1)
     {
         if (interest&ZOOKEEPER_READ) 
@@ -90,7 +90,7 @@ int ZkCpp::ProcessRecv()
         }
     }
     
-    rc = select(fd+1, &rfds, &wfds, &efds, &tv);
+    rc = select(fd+1, &rfds, &wfds, &efds, &tv); //TODO: confirm no waiting
     if (rc > 0) 
     {
         if (FD_ISSET(fd, &rfds))
@@ -104,6 +104,8 @@ int ZkCpp::ProcessRecv()
     }
 
     zookeeper_process(m_ZkHdl, events);
+
+    return 0;
 }
 
 void ZkCpp::_DataCompletionCB(int rc, const char *value, int value_len, 
@@ -115,7 +117,7 @@ void ZkCpp::_DataCompletionCB(int rc, const char *value, int value_len,
         return;
     }
 
-    ComplexUserData *pCUserData = reinterpret_cast<ComplexUserData*>(data);
+    ComplexUserData *pCUserData = reinterpret_cast<ComplexUserData*>(const_cast<void*>(data));
     if(NULL == pCUserData->pSelf)
     {
         printf("ZkCpp::_DataCompletionCB|NULLSelf\n");
@@ -123,6 +125,8 @@ void ZkCpp::_DataCompletionCB(int rc, const char *value, int value_len,
     }
 
     pCUserData->pSelf->_OnDataCompletion(rc, value, value_len, pCUserData->pUserData);
+
+    delete pCUserData;
 }
 
 void ZkCpp::_GlobalWatcher(zhandle_t *p_pZH, int p_iType, int p_iState, 
